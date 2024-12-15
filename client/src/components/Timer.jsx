@@ -1,48 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const CountdownTimer = ({ handleSubmit, targetTime }) => {
-  const navigate = useNavigate();
-
-  const calculateTimeRemaining = () => {
-    const now = new Date();
-    const target = new Date(targetTime);
-    const difference = target - now;
-
-    const minutes = Math.floor((difference / 1000 / 60) % 60);
-    const seconds = Math.floor((difference / 1000) % 60);
-
-    return { minutes, seconds, difference };
-  };
-
-  const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
+const CountdownTimer = ({ handleSubmit, endTime }) => {
+  const [timeLeft, setTimeLeft] = useState(endTime - Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const { minutes, seconds, difference } = calculateTimeRemaining();
-      setTimeRemaining({ minutes, seconds });
-
-      if (difference <= 0) {
-        handleSubmit();
+      const remainingTime = endTime - Date.now();
+      if (remainingTime <= 0) {
         clearInterval(timer);
-        navigate('/timeline'); // Redirect to '/timeline' when time reaches zero
+        setTimeLeft(0);
+        handleSubmit(); // Trigger auto-submit when time is up
+      } else {
+        setTimeLeft(remainingTime);
       }
     }, 1000);
 
     return () => clearInterval(timer); // Cleanup interval on unmount
-  }, [targetTime, navigate]);
+  }, [endTime, handleSubmit]);
 
-  const { minutes, seconds } = timeRemaining;
+  const formatTime = (milliseconds) => {
+    const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const days = Math.floor(totalSeconds / 86400); // 1 day = 86400 seconds
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
 
-  return (
-    <div className='text-lg'>
-      Time Remaining:
-      <span className='font-bold'>
-        {minutes.toString().padStart(2, '0')}m{' '}
-        {seconds.toString().padStart(2, '0')}s
-      </span>
-    </div>
-  );
+    return `${days > 0 ? `${days}d ` : ''}${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  return <div className="text-xl font-bold">Time Left: {formatTime(timeLeft)}</div>;
 };
 
 export default CountdownTimer;

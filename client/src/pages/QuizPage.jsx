@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Quize1 } from '../data/question';
 
 const questions = [
   'Explain the process of photosynthesis in detail.',
